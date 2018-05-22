@@ -1,0 +1,60 @@
+#This tool is only for internel ppc team.
+The structure of this tool is same with that of polarion, the requirement id
+and case id are same with polarion requirement id and case id, for example:
+==>mouse-->virtkvmqe-->migration_test_plan-->migration-->test_requirement
+-->ppc64le-->rhel7_58700.yaml
+==>mouse-->virtkvmqe-->migration_test_plan-->migration-->test_scenarios
+-->rhel7_10022.py
+
+I. Firstly, create test environment
+a)Firstly, you should execute "Bootstrap.sh" as following to install some
+required packages for test environment:
+==>sh Bootstrap.sh
+
+b)Secondly, if it is needed, you could execute "Bootstrap-network.sh"
+to configure network bridge, sure, you could ignore this step:
+==>sh Bootstrap-network.sh
+
+c)Thirdly, if you are going to test multi-host migration, you need to
+execute "Bootstrap-migration.sh" to configure source host and destination host:
+==>sh Bootstrap-migration.sh
+please input the src host ip:xx.xx.xx.xx
+please input the dst host ip:xx.xx.xx.xx
+please input the share_images_dir:/home/xianwang
+Notice:
+src host ip: the source host ip
+dst host ip: the destination host ip
+share_images_dir: the direction to put system image and other data disks
+
+II. Begin to execute test case
+a)For local host test cases, for example virtio-block feature test, the only one
+parameter "test_requirement" must be specified, for example:
+==>python Start2Run.py --test_requirement=rhel7_51215_matrix_virtio_scsi_iscsi
+the above command will execute all the test cases that linked to this requirement,
+
+if you want to execute some specific cases, you should use option:
+==>python Start2Run.py --test_requirement=rhel7_51215_matrix_virtio_scsi_iscsi
+--test_cases=rhel7_11911_virtio_scsi_local,rhel7_11912_virtio_scsi_iscsi
+
+b)For multi-host migration test, the following parameters must be specified:
+==>python Start2Run.py --test_requirement=rhel7_58700 --test_cases=rhel7_10022
+--src_host_ip=xx.xx.xx.xx --dst_host_ip=xx.xx.xx.xx
+--share_images_dir=/home/xianwang --sys_image_name=rhel75-ppc64le-virtio-scsi.qcow2
+
+if there are installation cases in this loop, the parameters about nfs server
+must be specified as following:
+==>python Start2Run.py --test_requirement=rhel7_58700 --src_host_ip=xx.xx.xx.xx
+ --dst_host_ip=xx.xx.xx.xx --share_images_dir=/home/xianwang
+ --sys_image_name=rhel75-ppc64le-virtio-scsi.qcow2 --nfs_bos_ip=xx.xx.xx.xx
+ --nfs_pek_ip=xx.xx.xx.xx
+
+c)The option "repeat_times" allows us to run loop or cases for some times
+==>python Start2Run.py --test_requirement=rhel7_58700 --test_cases=rhel7_10022
+--src_host_ip=xx.xx.xx.xx --dst_host_ip=xx.xx.xx.xx
+--share_images_dir=/home/xianwang --sys_image_name=rhel75-ppc64le-virtio-scsi.qcow2
+--repeat_times=3
+
+III.Log
+Test log is put in mouse/test_logs, 'latest' is the last time test log, one log
+direction is for one time test. For each log direction, there is four files:
+long_debug.log, paramiko.log, serial_debug.log and short_debug.log.

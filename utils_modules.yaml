@@ -1,0 +1,5 @@
+test_scenarios:
+ - virtkvmqe/virtual_block_device_test_plan/virtual_block/test_scenarios/
+ - virtkvmqe/migration_test_plan/migration/test_scenarios/
+ - unattended_installation/
+ - virtkvmqe/stable_guest_abi_for_ppc_test_plan/test_scenarios/

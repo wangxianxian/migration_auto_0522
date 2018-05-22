@@ -1,0 +1,170 @@
+# ----Set install option----
+guest_arch: 'ppc64le'
+image_name: 'install_sys_disk'
+image_size: '20G'
+iso_name: 'RHEL-7.5'
+install_timeout: '4800'
+
+nfs_pek_ip: 'xxx.xxx.xxx.xxx'
+nfs_bos_ip: 'xxx.xxx.xxx.xxx'
+
+nfs_server:
+ - '{nfs_pek_ip}:/vol/s2kvmauto/iso'
+ - '{nfs_bos_ip}:/srv/kvmqe/isos'
+
+rtt_tolerance: '150'
+
+drive_format: 'virtio_scsi'
+image_format: 'qcow2'
+# ---- End ----
+
+# Set password of host and guest
+host_passwd: 'kvmautotest'
+guest_passwd: 'kvmautotest'
+
+# Set your source and destination host ip address.
+src_host_ip: 'xxx.xxx.xxx.xxx'
+dst_host_ip: 'xxx.xxx.xxx.xxx'
+
+# Set the test requirement info.
+test_requirement:
+ name: "Stable Guest ABI for PPC"
+
+#Set matrix such as p8 to p8
+matrix: 'P8_P8'
+
+# Set the incoming port for migration.
+incoming_port: '4000'
+
+# Set your shared images directory.
+share_images_dir: '/xxx/xxx/xxx/'
+
+# Set the guest system image.
+sys_image_name: 'xxxx.qcow2'
+
+# Set data disks
+disk1_name: 'd1.raw'
+disk2_name: 'd2.qcow2'
+disk3_name: 'd3.raw'
+disk4_name: 'd4.qcow2'
+disk5_name: 'd5.qcow2'
+cdrom1_name: 'aa.iso'
+
+# Set the guest memory size.
+mem_size: '4096'
+
+# Set the guest vnc port.
+vnc_port: '10'
+
+# Set the guest qmp port.
+qmp_port: '3333'
+
+# Set the guest serial port.
+serial_port: '4444'
+
+# Set filename for spapr-vty connect
+src_nc : '/console1'
+dst_nc : '/console2'
+
+# Set qemu base command line.
+vm_cmd_base:
+ name:
+  - '"mouse-vm"'
+ sandbox:
+  - 'off'
+ machine:
+  - 'pseries'
+ nodefaults:
+  - 'None'
+ vga:
+  - 'std'
+ chardev:
+  - 'socket,id=charchannel1,path=/home/channel1,server,nowait'
+  - 'socket,id=channel1,path=/tmp/helloworld0,server,nowait'
+  - 'socket,id=serial_id_serial0,host={src_host_ip},port={serial_port},server,nowait'
+ device:
+  - 'spapr-pci-host-bridge,index=1'
+  - 'virtio-scsi-pci,bus=pci.1,id=scsi0,addr=0x3'
+  - 'scsi-hd,bus=scsi0.0,drive=drive-scsi0-0-0-0,id=scsi0-0-0-0,channel=0,scsi-id=0,lun=0'
+  - 'virtio-serial-pci,disable-legacy=on,disable-modern=off,id=agent-virtio-serial0,max_ports=16,vectors=0,bus=pci.1,addr=0x4,ioeventfd=on'
+  - 'virtserialport,bus=agent-virtio-serial0.0,nr=3,chardev=charchannel1,id=channel1,name=org.qemu.guest_agent.0'
+  - 'spapr-pci-host-bridge,index=2'
+  - 'virtio-blk-pci,drive=drive_blk,id=device_blk,multifunction=on,bus=pci.2,addr=0x03.0'
+  - 'virtio-scsi-pci,id=scsi1,multifunction=on,bus=pci.2,addr=0x03.1'
+  - 'scsi-hd,drive=drive-data0,id=data0,bus=scsi1.0,channel=0,scsi-id=0,lun=1'
+  - 'virtio-serial-pci,id=virtio-serial0,max_ports=32'
+  - 'virtserialport,chardev=channel1,name=com.redhat.rhevm.vdsm,bus=virtio-serial0.0,id=port0'
+  - 'spapr-vty,reg=0x30000000,chardev=serial_id_serial0'
+  - 'virtio-rng-pci,id=virtio-rng-pci-GVn8yzUA,rng=passthrough-rOXjKxaC,bus=pci.0,addr=0x04'
+  - 'nec-usb-xhci,id=usb1,bus=pci.0,addr=0x05'
+  - 'pci-ohci,id=usb3,bus=pci.0,addr=0x06'
+  - 'pci-bridge,id=pci_bridge_1,bus=pci.0,addr=0xc,chassis_nr=1'
+  - 'pci-bridge,id=pci_bridge_2,bus=pci.0,addr=0xd,chassis_nr=2'
+  - 'virtio-scsi-pci,id=virtio_scsi_pci0,bus=pci_bridge_1,iothread=iothread0,addr=0x07'
+  - 'virtio-scsi-pci,id=virtio_scsi_pci1,bus=pci.0,addr=0x08'
+  - 'scsi-hd,id=image1,drive=drive_image1,bus=virtio_scsi_pci0.0,channel=0,scsi-id=0,lun=0,bootindex=0'
+  - 'virtio-blk-pci,drive=drive_plane,id=plane,bus=pci_bridge_2,addr=0x09,iothread=iothread0'
+  - 'spapr-vscsi,reg=0x1000,id=scsi3'
+  - 'scsi-hd,drive=drive-system-disk,id=system-disk,bus=scsi3.0,channel=0,scsi-id=0,lun=0'
+  - 'scsi-cd,id=cd1,drive=drive_cd1,bus=virtio_scsi_pci1.0,channel=0,scsi-id=0,lun=0,bootindex=1'
+  - 'virtio-net-pci,mac=9a:4f:50:51:52:53,id=id9HRc5V,netdev=idjlQN53,vectors=10,mq=on,status=on,bus=pci.0,addr=0xa'
+  - 'spapr-vlan,mac=9a:4f:50:51:52:54,netdev=hostnet0,id=net0'
+  - 'pc-dimm,node=0,id=dimm-mem1,memdev=mem-mem1'
+  - 'usb-tablet,id=usb-tablet1,bus=usb1.0,port=1'
+  - 'usb-mouse,id=input1,bus=usb1.0,port=2'
+  - 'usb-kbd,id=input2,bus=usb1.0,port=3'
+  - 'virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0xb'
+ drive:
+  - 'file={share_images_dir}/{disk1_name},if=none,id=drive-scsi0-0-0-0,format=raw,cache=none'
+  - 'file={share_images_dir}/{disk2_name},id=drive_blk,format=qcow2,if=none,cache=none,werror=stop,rerror=stop'
+  - 'file={share_images_dir}/{disk3_name},if=none,id=drive-data0,format=raw,cache=none,aio=native'
+  - 'file={share_images_dir}/{sys_image_name},if=none,id=drive_image1,snapshot=off,aio=threads,cache=none,format=qcow2'
+  - 'file={share_images_dir}/{disk4_name},format=qcow2,if=none,cache=none,id=drive_plane,werror=stop,rerror=stop'
+  - 'file={share_images_dir}/{disk5_name},if=none,id=drive-system-disk,format=qcow2,cache=none,aio=native,werror=stop,rerror=stop'
+  - 'file={share_images_dir}/{cdrom1_name},id=drive_cd1,if=none,snapshot=off,aio=threads,cache=none,media=cdrom'
+ object:
+  - 'rng-random,filename=/dev/random,id=passthrough-rOXjKxaC'
+  - 'iothread,id=iothread0'
+  - 'memory-backend-file,policy=bind,mem-path=/mnt/kvm_hugepage,size=2G,host-nodes=0,id=mem-mem1'
+ netdev:
+  - 'tap,id=idjlQN53,vhost=on,queues=4,script=/etc/qemu-ifup,downscript=/etc/qemu-ifdown'
+  - 'tap,id=hostnet0,script=/etc/qemu-ifup,downscript=/etc/qemu-ifdown'
+ m:
+  - '{mem_size},slots=256,maxmem=32G'
+ smp:
+  - '8,cores=4,threads=1,sockets=2'
+ vnc:
+  - ':{vnc_port}'
+ rtc:
+  - 'base=utc,clock=host'
+ boot:
+  - 'order=cdn,once=c,menu=on,strict=on'
+ enable-kvm:
+  - 'None'
+ qmp:
+  - 'tcp:0:{qmp_port},server,nowait'
+# serial:
+#  - 'tcp:0:{serial_port},server,nowait'
+ monitor:
+  - 'stdio'
+ watchdog:
+  - 'i6300esb'
+ watchdog-action:
+  - 'reset'
+
+# Set the test case info linked to this test requirement.
+test_cases:
+ rhel7_110657:
+  name: "[stable guest abi][powerpc]forward and backward migration with \"-M pseries-rhel7.5.0\" machine type"
+
+# Set repeat times.
+repeat_times: '1'
+
+# Enable/Disable debug mode.
+verbose: 'no'
+
+# Set the time out for each test case.
+timeout: '3600'
+
+
+

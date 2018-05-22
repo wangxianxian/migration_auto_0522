@@ -1,0 +1,113 @@
+# ----Set install option----
+guest_arch: 'x86_64'
+image_name: 'install_sys_disk'
+image_size: '20G'
+iso_name: 'RHEL-7.5'
+install_timeout: '4800'
+
+nfs_pek_ip: 'xxx.xxx.xxx.xxx'
+nfs_bos_ip: 'xxx.xxx.xxx.xxx'
+
+nfs_server:
+ - '{nfs_pek_ip}:/vol/s2kvmauto/iso'
+ - '{nfs_bos_ip}:/srv/kvmqe/isos'
+
+rtt_tolerance: '150'
+
+# ---- End ----
+
+# Set password of host and guest
+host_passwd: 'kvmautotest'
+guest_passwd: 'kvmautotest'
+
+# Set your source and destination host ip address.
+src_host_ip: 'xxx.xxx.xxx.xxx'
+iscsi_server_ip: 'xxx.xxx.xxx.xxx'
+iscsi_target_iqn_name: 'iqn.xxxx-xx.com.xxx:xxxxx/x'
+
+# Set the test requirement info.
+test_requirement:
+ name: "Virtual block (virtio-scsi + iscsi) - x86"
+
+# Set the incoming port for migration.
+incoming_port: '4000'
+
+# Set your shared images directory.
+iscsi_images_dir: 'iscsi://{iscsi_server_ip}:3260/{iscsi_target_iqn_name}'
+
+# Set the guest system image.
+sys_image_name: 'xxxx.qcow2'
+
+# Set the guest memory size.
+mem_size: '4096'
+
+# Set the guest vnc port.
+vnc_port: '10'
+
+# Set the guest qmp port.
+qmp_port: '3333'
+
+# Set the guest serial port.
+serial_port: '4444'
+
+# Set qemu base command line.
+vm_cmd_base:
+ name:
+  - '"mouse-vm"'
+ sandbox:
+  - 'off'
+ machine:
+  - 'pc'
+ nodefaults:
+  - 'None'
+ vga:
+  - 'std'
+ chardev:
+  - 'socket,id=qmp_id_qmpmonitor1,path=/var/tmp/monitor-qmpmonitor1,server,nowait'
+  - 'socket,id=qmp_id_catch_monitor,path=/var/tmp/monitor-catch_monitor,server,nowait'
+ mon:
+  - 'chardev=qmp_id_qmpmonitor1,mode=control'
+  - 'chardev=qmp_id_catch_monitor,mode=control'
+ device:
+  - 'nec-usb-xhci,id=usb1,bus=pci.0,addr=0x3'
+  - 'virtio-scsi-pci,id=virtio_scsi_pci0,bus=pci.0,addr=0x4'
+  - 'scsi-hd,id=image1,drive=drive_image1,bus=virtio_scsi_pci0.0,channel=0,scsi-id=0,lun=0,bootindex=0'
+  - 'virtio-net-pci,mac=9a:8a:8b:8c:8d:8e,id=net0,vectors=4,netdev=tap0,bus=pci.0,addr=0x5'
+  - 'usb-tablet,id=usb-tablet1,bus=usb1.0,port=1'
+ drive:
+  - 'id=drive_image1,if=none,snapshot=off,aio=threads,cache=none,format=raw,file={iscsi_images_dir}'
+ netdev:
+  - 'tap,id=tap0,vhost=on'
+ m:
+  - '{mem_size}'
+ smp:
+  - '4,maxcpus=4,cores=2,threads=1,sockets=2'
+ vnc:
+  - ':{vnc_port}'
+ rtc:
+  - 'base=utc,clock=host'
+ boot:
+  - 'menu=off,strict=off,order=cdn,once=c'
+ enable-kvm:
+  - 'None'
+ qmp:
+  - 'tcp:0:{qmp_port},server,nowait'
+ serial:
+  - 'tcp:0:{serial_port},server,nowait'
+ monitor:
+  - 'stdio'
+
+# Set the test case info linked to this test requirement.
+test_cases:
+
+# Set repeat times.
+repeat_times: '1'
+
+# Enable/Disable debug mode.
+verbose: 'no'
+
+# Set the time out for each test case.
+timeout: '3600'
+
+
+
