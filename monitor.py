@@ -211,7 +211,8 @@ class RemoteMonitor(Test):
                                            max_recv_data=max_recv_data)
                     if shell_mode:
                         if 'shutdown' in cmd or 'init' in cmd or 'poweroff' in cmd:
-                            if re.findall(r'\[\s+\d+\.\d+\] Power down\.', allput):
+                            if re.findall(r'\[\s+\d+\.\d+\] Power down\.', allput) \
+                                    or re.findall(r'\[\s+\d+\.\d+\] reboot: Power down', allput):
                                 end = True
                                 break
                         elif re.findall(r'\[\S+\s~\]# ', allput):
@@ -322,6 +323,29 @@ class RemoteQMPMonitor(RemoteMonitor):
                 RemoteMonitor.test_print(self, output)
         output = RemoteMonitor.remove_cmd_echo_blank_space(self, output, cmd)
         return output
+
+    def qmp_cmd_keyword(self, cmd, keyword, timeout=600, recv_timeout=QMP_CMD_TIMEOUT,
+                          max_recv_data=RemoteMonitor.MAX_RECEIVE_DATA):
+        RemoteMonitor.test_print(self, cmd)
+        RemoteMonitor.send_cmd(self, cmd)
+        allput = ''
+        ret = False
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            output = self.rec_data(recv_timeout=recv_timeout,
+                                   max_recv_data=max_recv_data)
+            RemoteMonitor.test_print(self, output)
+            allput = allput + output
+            if re.findall(r'%s' % keyword, allput):
+                ret = True
+                break
+            else:
+                continue
+        if not ret:
+            err_info = 'Failed to get \"%s\" under %s sec' % (keyword, timeout)
+            RemoteMonitor.test_error(self, err_info)
+        allput = self.remove_cmd_echo_blank_space(cmd=cmd, output=allput)
+        return  allput
 
     def qmp_system_powerdown(self, timeout=300):
         cmd = '{ "execute": "system_powerdown" }'

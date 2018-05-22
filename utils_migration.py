@@ -1,6 +1,7 @@
 import os
 import time
 from monitor import RemoteQMPMonitor
+from utils_misc import generate_random_string
 import re
 import threading
 
@@ -20,13 +21,16 @@ def do_migration(remote_qmp, migrate_port, dst_ip, chk_timeout_1=180,
     return ret
 
 def query_migration(remote_qmp, interval=5, chk_timeout=1200):
-    cmd = '{"execute":"query-migrate"}'
     end_time = time.time() + chk_timeout
     while time.time() < end_time:
-        output = remote_qmp.qmp_cmd_output(cmd=cmd)
-        if re.findall(r'"remaining": 0', output):
+        id = generate_random_string(8)
+        cmd = '{"execute":"query-migrate","id":"%s"}' % id
+        output = remote_qmp.qmp_cmd_keyword(cmd=cmd, keyword=id)
+        if re.findall(r'"remaining": 0', output) \
+                and re.findall(r'"id": "%s"' % id, output):
             return True
-        elif re.findall(r'"status": "failed"', output):
+        elif re.findall(r'"status": "failed"', output) \
+                and re.findall(r'"id": "%s"' % id, output):
             remote_qmp.test_error('migration failed')
         time.sleep(interval)
     return False
@@ -49,10 +53,11 @@ def change_downtime(remote_qmp, downtime_val):
     downtime_cmd = '{"execute":"migrate-set-parameters","arguments":' \
                    '{"downtime-limit": %s}}' % downtime_val
     remote_qmp.qmp_cmd_output(cmd=downtime_cmd)
-    paras_chk_cmd = '{"execute":"query-migrate-parameters"}'
-    output = remote_qmp.qmp_cmd_output(cmd=paras_chk_cmd,
-                                           recv_timeout=2)
-    if re.findall(r'"downtime-limit": %s' % downtime_val, output):
+    id = generate_random_string(8)
+    paras_chk_cmd = '{"execute":"query-migrate-parameters","id":"%s"}' % id
+    output = remote_qmp.qmp_cmd_keyword(cmd=paras_chk_cmd, keyword=id)
+    if re.findall(r'"downtime-limit": %s' % downtime_val, output) \
+            and re.findall(r'"id": "%s"' % id, output):
         remote_qmp.test_print('Change migration downtime successfully')
     else:
         remote_qmp.test_error('Failed to change migration downtime')
@@ -61,10 +66,11 @@ def change_speed(remote_qmp, speed_val):
     speed_cmd = '{"execute":"migrate-set-parameters","arguments":' \
                 '{"max-bandwidth": %s}}' % speed_val
     remote_qmp.qmp_cmd_output(cmd=speed_cmd)
-    paras_chk_cmd = '{"execute":"query-migrate-parameters"}'
-    output = remote_qmp.qmp_cmd_output(cmd=paras_chk_cmd,
-                                           recv_timeout=2)
-    if re.findall(r'"max-bandwidth": %s' % speed_val, output):
+    id = generate_random_string(8)
+    paras_chk_cmd = '{"execute":"query-migrate-parameters","id":"%s"}' % id
+    output = remote_qmp.qmp_cmd_keyword(cmd=paras_chk_cmd, keyword=id)
+    if re.findall(r'"max-bandwidth": %s' % speed_val, output) \
+            and re.findall(r'"id": "%s"' % id, output):
         remote_qmp.test_print('Change migration speed successfully')
     else:
         remote_qmp.test_error('Failed to change migration speed')
