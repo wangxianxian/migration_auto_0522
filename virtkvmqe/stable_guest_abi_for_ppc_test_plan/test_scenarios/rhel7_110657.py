@@ -127,6 +127,7 @@ def run_case(params):
     src_host_session.boot_guest(cmd=src_qemu_cmd, vm_alias='src')
     src_remote_qmp = RemoteQMPMonitor(id, params, ip=src_host_ip, port=qmp_port)
     src_serial = RemoteSerialMonitor(id, params, src_host_ip, serial_port)
+    time.sleep(5)
     check_info = utils_migration.do_migration(remote_qmp=dst_remote_qmp,
                               migrate_port=incoming_port, dst_ip=src_host_ip)
     if (check_info == False):
